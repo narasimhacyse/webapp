@@ -1,0 +1,58 @@
+# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: Pull Request Testing
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [16.x]
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Setting up Hashicorp Packer
+      uses: hashicorp-contrib/setup-packer@v1
+      with:
+        packer-version: 1.7.10
+
+    -  run: npm run zip
+    
+    - name: Running test cases on featureBranch
+      run: npm ci
+      
+    -  run: npm run build --if-present
+    -  run: npm test
+
+    - name: AWS credentials 
+      uses: aws-actions/configure-aws-credentials@v1
+      with: 
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+
+    - name: Setting packer logs to Verbose
+      run: export PACKER_LOG=1
+
+    - name: Installing packer provisioners
+      run: packer init aws-linux-ami.pkr.hcl
+
+    - name: Running Packer template validation
+      run: packer validate aws-linux-ami.pkr.hcl
+
+    - name: Printing the contents of Directory
+      run: ls -l
