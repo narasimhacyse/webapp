@@ -15,6 +15,6 @@ router.get('*', (req, res) => {
 
 
 app.use('/v1/user', require('./controller/controller'));
-app.use('/v1/*', router);
+app.use('/v1/', router);
 
 module.exports = app;
