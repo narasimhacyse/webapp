@@ -6,8 +6,8 @@ const userService = require('../service/service');
 const {validateCreateUser,validateUpdateUser} = require('./validation');
 
 
-router.get('/self',authorize,getUserData)
-router.put('/self',authorize,validateUpdateUser,updateUserData);
+router.get('/',authorize,getUserData)
+router.put('/',authorize,validateUpdateUser,updateUserData);
 router.post('/',validateCreateUser,createUser);
 
 module.exports = router;
