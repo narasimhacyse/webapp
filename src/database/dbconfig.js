@@ -29,7 +29,7 @@ async function initialize() {
 
     // init models and add them to the exported database object
     database.User = require('../model/model')(sequelize);
-
+    database.Product = require('../model/productModel')(sequelize);
     // sync all models with database
     await sequelize.sync();
     

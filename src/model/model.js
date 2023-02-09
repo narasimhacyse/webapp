@@ -1,49 +1,49 @@
 const { DataTypes } = require('sequelize');
 
 
-function model(sequelize){
+function model(sequelize) {
   const options = {
     defaultScope: {
-        // exclude hash by default
-        attributes: { exclude: ['hash'] }
+      // exclude hash by default
+      attributes: { exclude: ['hash'] }
     },
     scopes: {
-        // include hash with this scope
-        withHash: { attributes: {}, }
+      // include hash with this scope
+      withHash: { attributes: {}, }
     }
   };
-  const  attributes={
-    id:{
-      type: DataTypes.STRING,
-      allowNull: false,
+  const attributes = {
+    id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
       primaryKey: true
     },
-    username:{
+    username: {
       type: DataTypes.STRING,
       allowNull: false
     },
-    password:{
+    password: {
       type: DataTypes.STRING,
       allowNull: false
     },
-    first_name:{
+    first_name: {
       type: DataTypes.STRING,
       allowNull: false
     },
-    last_name:{
+    last_name: {
       type: DataTypes.STRING,
       allowNull: false
     },
-    created_time:{
+    created_time: {
       type: DataTypes.STRING,
       allowNull: false
     },
-    updated_time:{
+    updated_time: {
       type: DataTypes.STRING,
       allowNull: false
     }
   }
-  return sequelize.define('User',attributes,options);
+  return sequelize.define('User', attributes, options);
 }
 
 module.exports = model;
