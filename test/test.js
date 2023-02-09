@@ -17,7 +17,7 @@ describe('WebApp test', function() {
 
 	describe('/', function() {
 		it('should be Status running', function(done) {
-			http.get('http://127.0.0.1:'+port+'/v1/healthz', function(response) {
+			http.get('http://127.0.0.1:'+port+'/healthz', function(response) {
 				assert.equal(response.statusCode, 200);
 				done();
 			});
