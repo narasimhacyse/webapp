@@ -7,9 +7,9 @@ const {validateCreateUser,validateUpdateUser,validateCreateProduct, validateUpda
 
 module.exports = router;
 
-router.get('/:userId',authorize,getUserData)
-router.put('/:userId',authorize,validateUpdateUser,updateUserData);
-router.post('/',validateCreateUser,createUser);
+router.get('/user/:userId',authorize,getUserData)
+router.put('/user/:userId',authorize,validateUpdateUser,updateUserData);
+router.post('/user/',validateCreateUser,createUser);
 
 //product
 router.post('/product', authorize, validateCreateProduct,createProduct);
@@ -24,7 +24,6 @@ function createProduct(req,res,next){
     res.status(201);res.json(data)
   })
   .catch(data => {
-    console.log("coming here2",data);
     res.status(400).send();next()
   });
 }
@@ -40,7 +39,7 @@ function getProduct(req, res, next) {
 function updateProduct(req,res,next){
   userService.updateProduct(req,res)
   .then(data => {
-    res.status(201);res.json(data)
+    res.status(204);res.json(data)
   })
   .catch(data => {
     res.status(400).send();next()
@@ -50,7 +49,7 @@ function updateProduct(req,res,next){
 function patchProduct(req,res,next){
   userService.patchProduct(req,res)
   .then(data => {
-    res.status(201);res.json(data)
+    res.status(204);res.json(data)
   })
   .catch(data => {
     res.status(400).send();next()
@@ -58,7 +57,6 @@ function patchProduct(req,res,next){
 }
 
 function deleteProduct(req, res, next) {
-  console.log("coming here");
   userService.deleteProduct(req.params.productId, req, res)
       .then(product => {
         res.status(204).json(product)
@@ -90,7 +88,6 @@ function updateUserData(req,res,next){
 function createUser(req,res,next){
   userService.createUser(req.body)
   .then(data => {
-    // console.log(data.id + " simha");
     res.status(201);res.json(data)
   })
   .catch(data => {
