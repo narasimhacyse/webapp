@@ -46,12 +46,6 @@ const emailValidator = require('email-validator');
     res.send({message:"please provide lastname"})
     return;
   }
-  console.log("corrct");
-  // if(req.body['updated_time'] || req.body['created_time']){
-  //   res.status(400);
-  //   res.send()
-  //   return;
-  // }
 
   next();
 }

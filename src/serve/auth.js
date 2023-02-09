@@ -8,7 +8,7 @@ async function authorize (req,res,next){
 
   const data = basicAuth(req);
   let fetchid = req.params.userId;
-  
+  let productId = req.params.productId;
   if (!data || !data.name || !data.pass) {
     res.set('WWW-Authenticate', 'Basic realm=Authorization Required');
      res.sendStatus(401);
@@ -17,18 +17,25 @@ async function authorize (req,res,next){
    
   const user = await db.User.findOne({where:{username:data.name}});
   
-  // console.log(user.id + " narasimha");
   if(!user)
   {
-    console.log("coming here");
     res.sendStatus(401);
     return;
   }
 
-  if(!(fetchid == user.id))
+  if(fetchid && !(fetchid == user.id))
   {
     res.sendStatus(403);
     return;
+  }
+  if(productId)
+  {
+    const userData =  await database.User.findOne({ where: { username: data.name}});
+    const product = await database.Product.findOne({ where: { id: productId } });
+    if(product.dataValues.owner_user_id != userData.dataValues.id)
+    {
+      res.status(403).send({message:"don't have access to this product"});
+    }
   }
 
   if (!(await bcrypt.compare(data.pass, user.password)))

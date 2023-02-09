@@ -67,7 +67,6 @@ async function updateUser(data, user) {
 }
 
 async function getUserData({ username, userId }) {
-  console.log(userId, "sdfas");
   const data = await database.User.findOne({ where: { username: username } });
   details = {};
   details.id = data.dataValues.id;
@@ -80,11 +79,11 @@ async function getUserData({ username, userId }) {
 }
 
 
-async function createProduct(req,res) {
+async function createProduct(req, res) {
   try {
     const params = req.body;
     if (await database.Product.findOne({ where: { sku: params.sku } })) {
-      res.status(400).send({message: "SKU already exists"});
+      res.status(400).send({ message: "SKU already exists" });
       return;
     }
 
@@ -95,14 +94,15 @@ async function createProduct(req,res) {
     params.date_last_updated = date_ob;
     params.owner_user_id = authUserData.dataValues.id;
 
-    if (!(Number.isInteger(params.quantity) && params.quantity >= 0 && params.quantity <= 100) ) {
-        res.status(400).send({message: " Enter a valid quantity"});
-        return;
+    if (!(Number.isInteger(params.quantity) && params.quantity >= 0 && params.quantity <= 100)) {
+      res.status(400).send({ message: " Enter a valid quantity" });
+      return;
     }
 
     const product = await database.Product.create(params);
     const ans = await database.Product.findOne({ where: { sku: product.sku } })
     details = {};
+    details.id = ans.id;
     details.name = ans.name;
     details.description = ans.description;
     details.sku = ans.sku;
@@ -120,9 +120,11 @@ async function createProduct(req,res) {
 async function getProduct(productId) {
   const product = await database.Product.findByPk(productId);
   if (!product) {
-    res.status(400).send({message: "Product is not present in the database'"});
+    res.status(400).send({ message: "Product is not present in the database'" });
     return;
   }
+  delete product.dataValues.createdAt;
+  delete product.dataValues.updatedAt;
   return product;
 }
 
@@ -130,31 +132,31 @@ async function updateProduct(req, res) {
   const updateProduct = req.body;
   const product = await database.Product.findByPk(req.params.productId);
   if (!product) {
-    res.status(400).send({message: "Product is not present in the database'"});
+    res.status(400).send({ message: "Product is not present in the database'" });
     return;
   }
 
   let date_ob = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
   updateProduct.date_last_updated = date_ob
-  
+
   const authUsername = req.a.user.name;
   const authUserData = await database.User.findOne({ where: { username: authUsername } });
   const userId = authUserData.dataValues.id;
 
   if (userId != product.dataValues.owner_user_id) {
-    res.status(403).send({message: "you are forbidden to update this product"});
+    res.status(403).send({ message: "you are forbidden to update this product" });
     return;
   }
 
-  if (!(Number.isInteger(updateProduct.quantity) && updateProduct.quantity >= 0 && updateProduct.quantity <= 100) ) {
-    res.status(400).send({message: " Enter a valid quantity"});
-      return;
+  if (!(Number.isInteger(updateProduct.quantity) && updateProduct.quantity >= 0 && updateProduct.quantity <= 100)) {
+    res.status(400).send({ message: " Enter a valid quantity" });
+    return;
   }
   const updateBody = await database.Product.findOne({ where: { id: req.params.productId } });
 
   if (updateBody.dataValues.sku != updateProduct.sku) {
     if (await database.Product.findOne({ where: { sku: updateProduct.sku } })) {
-      res.status(400).send({message: "already exists, please enter a different SKU"});
+      res.status(400).send({ message: "already exists, please enter a different SKU" });
       return;
     }
   }
@@ -164,12 +166,12 @@ async function updateProduct(req, res) {
   return (product.get());
 }
 
-async function patchProduct(req,res){
+async function patchProduct(req, res) {
   const updateProduct = req.body;
   const product = await database.Product.findByPk(req.params.productId);
 
-  if (!product){
-    res.status(400).send({message: "Product is not present in the database'"});
+  if (!product) {
+    res.status(400).send({ message: "Product is not present in the database'" });
     return;
   }
 
@@ -180,20 +182,22 @@ async function patchProduct(req,res){
   const authUserData = await database.User.findOne({ where: { username: authUsername } });
   const userId = authUserData.dataValues.id;
   if (userId != product.dataValues.owner_user_id) {
-    res.status(403).send({message: "you are forbidden to update this product"});
+    res.status(403).send({ message: "you are forbidden to update this product" });
     return;
   }
 
-  if (!(Number.isInteger(updateProduct.quantity) && updateProduct.quantity >= 0 && updateProduct.quantity <= 100) ) {
-    res.status(400).send({message: " Enter a valid quantity"});
+  if (Number.isInteger(updateProduct.quantity)) {
+    if (!(updateProduct.quantity >= 0 && updateProduct.quantity <= 100)) {
+      res.status(400).send({ message: " Enter a valid quantity" });
       return;
+    }
   }
 
   const updateBody = await database.Product.findOne({ where: { id: req.params.productId } });
 
   if (updateBody.dataValues.sku != updateProduct.sku) {
     if (await database.Product.findOne({ where: { sku: updateProduct.sku } })) {
-      res.status(400).send({message: "already exists, please enter a different SKU"});
+      res.status(400).send({ message: "already exists, please enter a different SKU" });
       return;
     }
   }
@@ -208,7 +212,7 @@ async function deleteProduct(productId, req, res) {
 
   const product = await database.Product.findByPk(productId);
   if (!product) {
-    res.status(400).send({message: "This Product is not present in the database'"});
+    res.status(400).send({ message: "This Product is not present in the database'" });
     return;
   }
 
@@ -216,15 +220,15 @@ async function deleteProduct(productId, req, res) {
   const authUserData = await database.User.findOne({ where: { username: authUsername } });
   const userId = authUserData.dataValues.id;
   if (userId != product.dataValues.owner_user_id) {
-    res.status(400).send({message : "Don't have permission to delete"});
+    res.status(400).send({ message: "Don't have permission to delete" });
     return;
-  } 
+  }
   else {
     database.Product.destroy({ where: { id: productId } })
     res.status(204).send("successfully deleted the product");
-    return ;
+    return;
   }
-  return ;
+  return;
 }
 
 module.exports = {
