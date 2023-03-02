@@ -5,6 +5,23 @@ const authorize = require('../serve/auth.js')
 const userService = require('../service/service');
 const {validateCreateUser,validateUpdateUser,validateCreateProduct, validateUpdateProduct} = require('./validation');
 
+// Create a multer middleware to handle file upload
+const multer = require('multer');
+const filter = (req,file, cb)=>{
+  if(file.mimetype === "image/jpeg" || file.mimetype === "image/jpg" || file.mimetype === "image/png" )
+    {
+        cb(null,true);
+    }
+    else{
+        cb(null, false);
+    }
+}
+const upload = multer({
+  // storage: multer.memoryStorage(),
+  fileFilter: filter
+});
+
+
 module.exports = router;
 
 router.get('/user/:userId',authorize,getUserData)
@@ -17,6 +34,55 @@ router.get('/product/:productId', getProduct);
 router.put('/product/:productId', authorize, validateCreateProduct, updateProduct);
 router.delete('/product/:productId', authorize, deleteProduct);
 router.patch('/product/:productId', authorize, validateUpdateProduct, patchProduct);
+
+// image
+router.post('/product/:productId/image',upload.single('upload'),authorize,addImage);
+router.get('/product/:productId/image/:imageId',authorize,getImage);
+router.delete('/product/:productId/image/:imageId',authorize,deleteImage);
+router.get('/product/:productId/image',authorize,getAllImage);
+
+
+async function addImage(req, res) {
+  try {
+    const image = req.file;
+    const createdImage = await userService.addImage(req,res);
+    res.status(201).json(createdImage);
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ error: 'Something went wrong while uploading image' });
+  }
+}
+
+async function getImage(req, res) {
+  try {
+    const detailImage = await userService.getImage(req,res);
+    res.status(200).json(detailImage);
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ error: 'Something went wrong while retrieving image' });
+  }
+}
+
+async function getAllImage(req, res) {
+  try {
+    console.log("nnnn");
+    const detailImage = await userService.getAllImage(req,res);
+    res.status(201).json(detailImage);
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ error: 'Something went wrong' });
+  }
+}
+
+async function deleteImage(req, res) {
+  try {
+    const detImage = await userService.deleteImage(req,res);
+    res.status(204);
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ error: 'Something went wrong' });
+  }
+}
 
 function createProduct(req,res,next){
   userService.createProduct(req,res)
@@ -94,3 +160,4 @@ function createUser(req,res,next){
     res.status(400).send();next()
   });
 }
+

@@ -2,7 +2,8 @@ const express = require('express');
 const app = express();
 app.use(express.json());
 const router = express.Router();
-
+const env = process.env;
+require('dotenv').config();
 
 router.get('/healthz', (req, res) => {
     res.send("I'm receiving");

@@ -32,11 +32,16 @@ async function authorize (req,res,next){
   {
     const userData =  await database.User.findOne({ where: { username: data.name}});
     const product = await database.Product.findOne({ where: { id: productId } });
+    if(!product){
+      res.status(400).send({message:"This productID is not present in database"});
+    return;
+    }
     if(product.dataValues.owner_user_id != userData.dataValues.id)
     {
       res.status(403).send({message:"don't have access to this product"});
     }
   }
+
 
   if (!(await bcrypt.compare(data.pass, user.password)))
   {
