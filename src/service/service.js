@@ -1,7 +1,9 @@
-const uuid = require('uuid');
+//const uuid = require('uuid');
+const { v4: uuidv4 } = require('uuid');
+const fs = require('fs');
 const bcrypt = require('bcryptjs');
 const database = require('../database/dbconfig');
-
+//const s3 = require('../s3/images3');
 async function createUser(user) {
 
   await database.initialize();
@@ -231,6 +233,84 @@ async function deleteProduct(productId, req, res) {
   return;
 }
 
+const Image = require('../model/imageModel');
+const s3 = require('../s3/images3');
+
+async function addImage(req, res) {
+  
+  const ppid = await database.Product.findOne({ where: { id: req.params.productId } });
+  if(!ppid) {
+    res.status(400).send({message:"This productID is not present in database"});
+    return;
+  }
+  if (!req.file) {
+    console.log("plz upload image file");
+    res.status(400).send({ message: "upload image file" });
+    return;
+  }
+  const filename = req.file.originalname;
+  const s3lostored = await s3.uploadImage(req.file);
+
+  image = req.file;
+  let date_ob = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
+  const add = req.body;
+  add.product_id = req.params.productId;
+  add.file_name = image.originalname;
+  add.s3_bucket_path = s3lostored;
+  add.date_created = date_ob;
+
+  const afterImage = await database.Image.create(add)
+  return afterImage;
+}
+
+async function getImage(req, res) {
+  const imageId = await database.Image.findByPk(req.params.imageId);
+
+  if (!imageId) {
+    res.status(400).send({ message: "Image is not present in the database'" });
+    return;
+  }
+  const pid = imageId.dataValues.product_id;
+  if (req.params.productId != pid) {
+    res.status(403).send({ message: "Forbidden error" });
+    return;
+  }
+  return imageId;
+}
+
+async function deleteImage(req, res) {
+  const id = await database.Image.findByPk(req.params.imageId);
+  const ppid = await database.Product.findOne({ where: { id: req.params.productId } });
+  if(!ppid) {
+    res.status(400).send({message:"This productID is not present in database"});
+    return;
+  }
+
+  if (!id) {
+    res.status(404).send({ message: "Image is not present in the database'" });
+    return;
+  }
+
+  const pid = id.dataValues.product_id;
+  if (req.params.productId != pid) {
+    res.status(403).send({ message: "Forbidden error" });
+    return;
+  }
+  const deleted = await s3.deleteFile(id.dataValues.s3_bucket_path);
+
+  database.Image.destroy({ where: { image_id: id.image_id } })
+  res.status(204).send("successfully deleted the Image");
+}
+
+async function getAllImage(req, res) {
+  const productid = await database.Image.findAll({ where: { product_id: req.params.productId } });
+  if (!productid) {
+    res.status(400).send({ message: "Product is not present in the database'" });
+    return;
+  }
+  return productid;
+}
+
 module.exports = {
   getUserData,
   updateUser,
@@ -239,5 +319,9 @@ module.exports = {
   getProduct,
   updateProduct,
   patchProduct,
-  deleteProduct
+  deleteProduct,
+  addImage,
+  getImage,
+  deleteImage,
+  getAllImage
 }

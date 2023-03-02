@@ -1,7 +1,9 @@
+const env = process.env
 module.exports = ({
-    MYSQL_USERNAME: "root",
-    MYSQL_PASSWORD: "Chinna@1060",
+    MYSQL_USERNAME: env.DATABASE_USERNAME,
+    MYSQL_PASSWORD: env.DATABASE_PASSWORD,
     SERVER_PORT:4000,
-    HOST:'localhost',
-    DATABASE:'userinfo'
+    HOST:env.DATABASE_HOST,
+    DATABASE_NAME:env.DATABASE_NAME,
+    DATABASE_PORT:env.DATABASE_PORT
   });
