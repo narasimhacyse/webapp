@@ -1,8 +1,10 @@
 const emailValidator = require('email-validator');
+const logger = require('../logs/logs');
 
  function validateCreateUser(req, res, next) {
   if(!emailValidator.validate(req.body['username']) ){
     res.status(400);
+    logger.error("invalid email provided");
     res.send({"error":'invalid email provided'});
     return;
   }
@@ -18,12 +20,14 @@ const emailValidator = require('email-validator');
 
   if(!req.body['username'] ){
     res.status(400);
+    logger.error("please provide username");
     res.send({message:"please provide username"});
     return;
   }else{
     const authuser = req.a.user.name;
     if(req.body.username != authuser)
     {
+      logger.error("username should be same");
       res.status(400).send({message:"username should be same"});
       return;
     }
@@ -31,18 +35,21 @@ const emailValidator = require('email-validator');
   
   if(!(req.body['password'])){
     res.status(400);
+    logger.error("please provide password");
     res.send({message:"please provide password"})
     return;
   }
 
   if(!(req.body['first_name'])){
     res.status(400);
+    logger.error("please provide firstname");
     res.send({message:"please provide firstname"});
     return;
   }
 
   if(!(req.body['last_name'])){
     res.status(400);
+    logger.error("please provide lastname");
     res.send({message:"please provide lastname"})
     return;
   }

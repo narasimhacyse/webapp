@@ -9,6 +9,7 @@
         "zip": "sh createzip.sh"
     },
     "dependencies": {
+        "app-root-path": "^3.1.0",
         "aws-sdk": "^2.1325.0",
         "basic-auth": "^2.0.1",
         "bcrypt": "^5.0.1",
@@ -19,6 +20,7 @@
         "express": "^4.18.2",
         "express-basic-auth": "^1.2.1",
         "express-validator": "^6.14.0",
+        "hot-shots": "^10.0.0",
         "http-auth": "^4.1.9",
         "mocha": "^9.2.0",
         "multer": "^1.4.5-lts.1",
@@ -27,7 +29,9 @@
         "node": "^16.19.0",
         "path": "^0.12.7",
         "sequelize": "^6.28.0",
-        "uuid": "^8.3.2"
+        "statsd": "^0.9.0",
+        "uuid": "^8.3.2",
+        "winston": "^3.8.2"
     },
     "devDependencies": {
         "nodemon": "^2.0.15"
