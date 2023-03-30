@@ -36,6 +36,7 @@ build {
       "sudo curl -sL https://rpm.nodesource.com/setup_16.x | sudo -E bash -",
       "sudo yum install -y nodejs",
       "sudo amazon-linux-extras install epel -y",
+      "sudo yum -y install amazon-cloudwatch-agent",
       "mkdir /home/ec2-user/webapp",
       "chown ec2-user:ec2-user /home/ec2-user/webapp",
     ]
@@ -44,9 +45,15 @@ build {
     destination = "/home/ec2-user/webapp"
     source = "./"
   }
+
+  provisioner "file" {
+    source      = "./cloudwatch-config.json"
+    destination = "/tmp/amazon-cloudwatch-agent.json"
+  }
  
   provisioner "shell" {
     inline = [
+      "sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/tmp/amazon-cloudwatch-agent.json -s",
       "cd /home/ec2-user/webapp",
       "npm install",
       "sudo cp /home/ec2-user/webapp/webapp.service /lib/systemd/system/webapp.service",

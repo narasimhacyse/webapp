@@ -2,6 +2,7 @@
 const { v4: uuidv4 } = require('uuid');
 const fs = require('fs');
 const bcrypt = require('bcryptjs');
+const logger = require('../logs/logs');
 const database = require('../database/dbconfig');
 //const s3 = require('../s3/images3');
 async function createUser(user) {
@@ -85,6 +86,7 @@ async function createProduct(req, res) {
   try {
     const params = req.body;
     if (await database.Product.findOne({ where: { sku: params.sku } })) {
+      logger.error("SKU already exists");
       res.status(400).send({ message: "SKU already exists" });
       return;
     }
@@ -97,6 +99,7 @@ async function createProduct(req, res) {
     params.owner_user_id = authUserData.dataValues.id;
 
     if (!(Number.isInteger(params.quantity) && params.quantity >= 0 && params.quantity <= 100)) {
+      logger.error("Enter a valid quantity");
       res.status(400).send({ message: " Enter a valid quantity" });
       return;
     }
@@ -122,7 +125,8 @@ async function createProduct(req, res) {
 async function getProduct(productId) {
   const product = await database.Product.findByPk(productId);
   if (!product) {
-    res.status(400).send({ message: "Product is not present in the database'" });
+    logger.error("Product is not present in the database");
+    res.status(400).send({ message: "Product is not present in the database" });
     return;
   }
   delete product.dataValues.createdAt;
@@ -134,6 +138,7 @@ async function updateProduct(req, res) {
   const updateProduct = req.body;
   const product = await database.Product.findByPk(req.params.productId);
   if (!product) {
+    logger.error("Product is not present in the database");
     res.status(400).send({ message: "Product is not present in the database'" });
     return;
   }
@@ -146,11 +151,13 @@ async function updateProduct(req, res) {
   const userId = authUserData.dataValues.id;
 
   if (userId != product.dataValues.owner_user_id) {
+    logger.error("you are forbidden to update this product");
     res.status(403).send({ message: "you are forbidden to update this product" });
     return;
   }
 
   if (!(Number.isInteger(updateProduct.quantity) && updateProduct.quantity >= 0 && updateProduct.quantity <= 100)) {
+    logger.error("Enter a valid quantity");
     res.status(400).send({ message: " Enter a valid quantity" });
     return;
   }
@@ -158,6 +165,7 @@ async function updateProduct(req, res) {
 
   if (updateBody.dataValues.sku != updateProduct.sku) {
     if (await database.Product.findOne({ where: { sku: updateProduct.sku } })) {
+      logger.error("already exists, please enter a different SKU");
       res.status(400).send({ message: "already exists, please enter a different SKU" });
       return;
     }
@@ -173,6 +181,7 @@ async function patchProduct(req, res) {
   const product = await database.Product.findByPk(req.params.productId);
 
   if (!product) {
+    logger.error("Product is not present in the database'");
     res.status(400).send({ message: "Product is not present in the database'" });
     return;
   }
@@ -184,12 +193,14 @@ async function patchProduct(req, res) {
   const authUserData = await database.User.findOne({ where: { username: authUsername } });
   const userId = authUserData.dataValues.id;
   if (userId != product.dataValues.owner_user_id) {
+    logger.error("you are forbidden to update this product");
     res.status(403).send({ message: "you are forbidden to update this product" });
     return;
   }
 
   if (Number.isInteger(updateProduct.quantity)) {
     if (!(updateProduct.quantity >= 0 && updateProduct.quantity <= 100)) {
+      logger.error("Enter a valid quantity");
       res.status(400).send({ message: " Enter a valid quantity" });
       return;
     }
@@ -199,6 +210,7 @@ async function patchProduct(req, res) {
 
   if (updateBody.dataValues.sku != updateProduct.sku) {
     if (await database.Product.findOne({ where: { sku: updateProduct.sku } })) {
+      logger.error("already exists, please enter a different SKU");
       res.status(400).send({ message: "already exists, please enter a different SKU" });
       return;
     }
@@ -214,6 +226,7 @@ async function deleteProduct(productId, req, res) {
 
   const product = await database.Product.findByPk(productId);
   if (!product) {
+    logger.error("This Product is not present in the database'");
     res.status(400).send({ message: "This Product is not present in the database'" });
     return;
   }
@@ -222,11 +235,13 @@ async function deleteProduct(productId, req, res) {
   const authUserData = await database.User.findOne({ where: { username: authUsername } });
   const userId = authUserData.dataValues.id;
   if (userId != product.dataValues.owner_user_id) {
+    logger.error("Don't have permission to delete");
     res.status(400).send({ message: "Don't have permission to delete" });
     return;
   }
   else {
     database.Product.destroy({ where: { id: productId } })
+    logger.info("successfully deleted the product");
     res.status(204).send("successfully deleted the product");
     return;
   }
@@ -240,11 +255,12 @@ async function addImage(req, res) {
   
   const ppid = await database.Product.findOne({ where: { id: req.params.productId } });
   if(!ppid) {
+    logger.error("This productID is not present in database");
     res.status(400).send({message:"This productID is not present in database"});
     return;
   }
   if (!req.file) {
-    console.log("plz upload image file");
+    logger.error("plz upload image file");
     res.status(400).send({ message: "upload image file" });
     return;
   }
@@ -267,11 +283,13 @@ async function getImage(req, res) {
   const imageId = await database.Image.findByPk(req.params.imageId);
 
   if (!imageId) {
+    logger.error("Image is not present in the database");
     res.status(400).send({ message: "Image is not present in the database'" });
     return;
   }
   const pid = imageId.dataValues.product_id;
   if (req.params.productId != pid) {
+    logger.error("Forbidden error");
     res.status(403).send({ message: "Forbidden error" });
     return;
   }
@@ -282,11 +300,13 @@ async function deleteImage(req, res) {
   const id = await database.Image.findByPk(req.params.imageId);
   const ppid = await database.Product.findOne({ where: { id: req.params.productId } });
   if(!ppid) {
+    logger.error("This productID is not present in database");
     res.status(400).send({message:"This productID is not present in database"});
     return;
   }
 
   if (!id) {
+    logger.error("Image is not present in the database");
     res.status(404).send({ message: "Image is not present in the database'" });
     return;
   }
