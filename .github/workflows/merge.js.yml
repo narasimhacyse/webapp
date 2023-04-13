@@ -23,7 +23,7 @@ jobs:
       run: packer init ec2.pkr.hcl
 
     - name: Building Packer Template
-      run: packer build -var ec2.pkr.hcl 2>&1 | sudo tee name.txt; tail -2 name.txt | head -2 | awk 'match($0, /ami-.*/) { print substr($0, RSTART, RLENGTH) }' >> ami_name.txt
+      run: packer build -var hcl_file_name=ec2.pkr.hcl 2>&1 | sudo tee name.txt; tail -2 name.txt | head -2 | awk 'match($0, /ami-.*/) { print substr($0, RSTART, RLENGTH) }' >> ami_name.txt
 
     - name: Create new launch template
       run: cat ami_name.txt | while read ami; do aws ec2 create-launch-template-version --launch-template-name webapp-launch-template --version-description v1 --source-version 1 --launch-template-data "ImageId=$ami"; done
