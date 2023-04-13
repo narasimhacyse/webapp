@@ -1,10 +1,10 @@
-
 name: Merge
 
 env:
   AWS_REGION: us-east-1
   AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}
   AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY}}
+
 on:
   push:
     branches: [ main ]
@@ -22,14 +22,14 @@ jobs:
     - name: Download Packer plugin libraries
       run: packer init ec2.pkr.hcl
 
-     - name: Building Packer Template
+    - name: Building Packer Template
       run: packer build -var ec2.pkr.hcl 2>&1 | sudo tee name.txt; tail -2 name.txt | head -2 | awk 'match($0, /ami-.*/) { print substr($0, RSTART, RLENGTH) }' >> ami_name.txt
 
     - name: Create new launch template
-      run: cat ami_name.txt | while read ami; do aws ec2 create-launch-template-version --launch-template-name webapp-launch-template. --version-description v1 --source-version 1 --launch-template-data "ImageId=$ami"; done
+      run: cat ami_name.txt | while read ami; do aws ec2 create-launch-template-version --launch-template-name webapp-launch-template --version-description v1 --source-version 1 --launch-template-data "ImageId=$ami"; done
 
     - name: Update the autoscaling group  
-      run: aws autoscaling update-auto-scaling-group --auto-scaling-group-name webapp-autoscaling-group --launch-template LaunchTemplateName=webapp-launch-template.,Version='$Latest'
+      run: aws autoscaling update-auto-scaling-group --auto-scaling-group-name webapp-autoscaling-group --launch-template LaunchTemplateName=webapp-launch-template,Version='$Latest'
 
     - name: Instance refresh
-      run: was autoscaling start-instance-refresh --auto-scaling-group-name webapp-autoscaling-group
+      run: aws autoscaling start-instance-refresh --auto-scaling-group-name webapp-autoscaling-group
