@@ -29,7 +29,7 @@ jobs:
       run: cat ami_name.txt | while read ami; do aws ec2 create-launch-template-version --launch-template-name webapp-launch-template. --version-description v1 --source-version 1 --launch-template-data "ImageId=$ami"; done
 
     - name: Update the autoscaling group  
-      run: aws autoscaling update-auto-scaling-group --auto-scaling-group-name webapp-autoscaling-group --launch-template LaunchTemplateName=awebapp-launch-template.,Version='$Latest'
+      run: aws autoscaling update-auto-scaling-group --auto-scaling-group-name webapp-autoscaling-group --launch-template LaunchTemplateName=webapp-launch-template.,Version='$Latest'
 
     - name: Instance refresh
       run: was autoscaling start-instance-refresh --auto-scaling-group-name webapp-autoscaling-group
