@@ -15,7 +15,7 @@ router.get('*', (req, res) => {
 });
 
 
-app.use('/v1', require('./controller/controller'));
+app.use('/v2', require('./controller/controller'));
 app.use('/', router);
 
 module.exports = app;
